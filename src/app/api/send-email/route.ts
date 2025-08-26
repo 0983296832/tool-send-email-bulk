@@ -248,7 +248,10 @@ async function sendSingleEmail(
   month = "8"
 ) {
   const payload = {
-    sender: { email: "thanhbinh191099@gmail.com", name: "Lê Văn Bình" },
+    sender: {
+      email: process.env.NEXTJS_EMAIL_FROM ?? "",
+      name: process.env.NEXTJS_EMAIL_NAME ?? "",
+    },
     to: [{ email: recipient.Email, name: recipient["HỌ VÀ TÊN"] || "" }],
     subject: subjects,
     htmlContent: buildEmailHtml(recipient, type, month),
