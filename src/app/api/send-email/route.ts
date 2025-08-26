@@ -82,8 +82,8 @@ export function buildEmailHtml(
     <div class="footer">
       <p>Nếu cần hỗ trợ thêm thông tin hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
       <div class="contact">
-        <p><strong>Anh Hoàng Văn Lực</strong></p>
-        <p>Zalo/SĐT: <strong>0981381910</strong></p>
+         <p><strong>CSKH ** Hoàng Giai Vy**</p>
+        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
         <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
       </div>
     </div>
@@ -147,8 +147,8 @@ export function buildEmailHtml(
     <div class="footer">
       <p>Nếu cần hỗ trợ thêm thông tin tách 1 kì thanh toán hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
       <div class="contact">
-        <p><strong>Anh Hoàng Văn Lực</strong></p>
-        <p>Zalo/SĐT: <strong>0981381910</strong></p>
+         <p><strong>CSKH ** Hoàng Giai Vy**</p>
+        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
         <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
       </div>
       <p class="note"><strong>Trân trọng,</strong><br/><strong>Trung tâm Dịch vụ Khách hàng – Vay Nhanh | Tin Vay</strong></p>
@@ -215,8 +215,8 @@ export function buildEmailHtml(
     <div class="footer">
       <p>Nếu cần hỗ trợ thêm thông tin tách 1 kì thanh toán hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
       <div class="contact">
-        <p><strong>Anh Hoàng Văn Lực</strong></p>
-        <p>Zalo/SĐT: <strong>0981381910</strong></p>
+        <p><strong>CSKH ** Hoàng Giai Vy**</p>
+        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
         <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
       </div>
       <p class="note"><strong>Trân trọng,</strong><br/><strong>Phòng xử lý Thu Hồi Nợ Chú Ý – Vay Nhanh | Tin Vay</strong></p>

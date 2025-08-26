@@ -72,10 +72,9 @@ export default function ExcelUploadForm() {
   // Hàm tải xuống
   const downloadFileFromBlob = (response: any, filename: string) => {
     const blob = new Blob([response], {
-      type:
-        response.type ||
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
+
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -120,13 +119,13 @@ export default function ExcelUploadForm() {
     };
 
     xhr.onreadystatechange = () => {
-      console.log(xhr);
       if (xhr.readyState === XMLHttpRequest.DONE) {
         setLoading(false);
         try {
           if (xhr.status >= 200 && xhr.status < 300) {
             setProgress(100);
             // gọi hàm tải xuống với response
+
             downloadFileFromBlob(
               xhr.response,
               `ket_qua_${new Date().toISOString().slice(0, 10)}.xlsx`
@@ -150,6 +149,7 @@ export default function ExcelUploadForm() {
     };
 
     xhr.open("POST", "/api/send-email", true);
+    xhr.responseType = "blob";
     xhr.send(fd);
   }
 
