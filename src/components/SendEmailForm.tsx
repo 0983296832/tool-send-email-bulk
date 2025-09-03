@@ -56,8 +56,12 @@ export default function ExcelUploadForm() {
       if (!["xlsx", "xls"].includes(ext))
         e.file = "File phải là Excel (.xlsx/.xls).";
     }
-    if (type == null || ![1, 2, 3].includes(Number(type)))
-      e.type = "Chọn type (1 | 2 | 3).";
+    if (
+      type == null ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(Number(type))
+    )
+      e.type =
+        "Chọn type (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13).";
     const mn = Number(month);
     if (!Number.isInteger(mn) || mn < 1 || mn > 12)
       e.month = "Tháng không hợp lệ (1..12).";
@@ -223,6 +227,34 @@ export default function ExcelUploadForm() {
                     <SelectItem value="1">1 - Đến hạn</SelectItem>
                     <SelectItem value="2">2 - Quá hạn</SelectItem>
                     <SelectItem value="3">3 - Vi phạm quá hạn</SelectItem>
+                    <SelectItem value="4">4 - Quá hạn nghiêm trọng</SelectItem>
+                    <SelectItem value="5">
+                      5 - Xử lý gấp quá hạn nghiêm trọng
+                    </SelectItem>
+                    <SelectItem value="6">
+                      6 - Vi phạm hợp đồng tín dụng
+                    </SelectItem>
+                    <SelectItem value="7">
+                      7 - Nợ chú ý: Tất toán & truy thu
+                    </SelectItem>
+                    <SelectItem value="8">
+                      8 - Cảnh báo cuối cùng nợ xấu
+                    </SelectItem>
+                    <SelectItem value="9">
+                      9 - Vi phạm hợp đồng tín dụng (biến thể)
+                    </SelectItem>
+                    <SelectItem value="10">
+                      10 - Cảnh báo pháp lý: Nguy cơ hình sự
+                    </SelectItem>
+                    <SelectItem value="11">
+                      11 - Thông báo khẩn: Trước khi chuyển điều tra
+                    </SelectItem>
+                    <SelectItem value="12">
+                      12 - Khẩn cấp: Hợp tác trước khi chuyển pháp lý
+                    </SelectItem>
+                    <SelectItem value="13">
+                      13 - Thông báo nghiêm trọng: Chuẩn bị hồ sơ pháp lý
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.type && (

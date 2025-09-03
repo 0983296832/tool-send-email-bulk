@@ -3,232 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import * as xlsx from "xlsx";
 import fs from "fs";
 import path from "path";
+import { buildEmailHtml } from "@/utils";
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
-
-type Recipient = Record<string, any>;
-
-const formatVND = (value: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-};
-
-export function buildEmailHtml(
-  recipient: Recipient,
-  type: 1 | 2 | 3,
-  month = "8"
-): string {
-  const v = (k: string) => recipient?.[k] ?? "";
-  switch (type) {
-    case 1:
-      return `<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>[TIN VAY - THÔNG BÁO] Đến hạn thanh toán</title>
-  <style>
-    body{font-family: Arial, Helvetica, sans-serif;line-height:1.5;color:#111;background:#f6f6f6;padding:20px}
-    .card{max-width:700px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-    h1{font-size:18px;margin:0 0 8px}
-    p{margin:8px 0}
-    .info{background:#fafafa;border:1px solid #eee;padding:12px;border-radius:6px;margin:12px 0}
-    .row{margin:6px 0}
-    .label{font-weight:600}
-    .note{color:#555;font-size:13px;margin-top:12px}
-    .footer{margin-top:18px;padding-top:12px;border-top:1px dashed #e6e6e6;color:#333}
-    .contact{margin-top:8px}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>[TIN VAY - THÔNG BÁO] Đến hạn thanh toán kỳ tháng ${month} – Mã hợp đồng: ${v(
-        "MÃ KHOẢN VAY"
-      )}</h1>
-
-    <p>Kính gửi Ông/Bà <strong>${v("HỌ VÀ TÊN")}</strong>,</p>
-    <p>Công ty xin thông báo đến Quý khách về khoản vay đến hạn thanh toán kỳ <strong>tháng ${month}</strong> như sau:</p>
-
-    <div class="info">
-      <div class="row"><span class="label">Số điện thoại:</span> ${v(
-        "ĐIỆN THOẠI"
-      )}</div>
-      <div class="row"><span class="label">Mã hợp đồng:</span> ${v(
-        "MÃ KHOẢN VAY"
-      )}</div>
-      <div class="row"><span class="label">Số tiền đã vay bên Công ty:</span> ${formatVND(
-        v("SỐ TIỀN VAY")
-      )}</div>
-      <div class="row"><span class="label">Tổng kỳ hạn trả góp:</span> ${v(
-        "KỲ HẠN"
-      )}</div>
-      <div class="row"><span class="label">CCCD:</span> ${v("cccd")}</div>
-      <div class="row"><span class="label">Địa chỉ:</span> ${v("Địa Chỉ")}</div>
-    </div>
-
-    <p class="note">
-      Hiện tại khoản vay trả góp của Quý Khách tháng này đã đến hạn thanh toán. Vui lòng tiến hành thanh toán đúng hạn trả góp kì vay theo hợp đồng tín dụng của mình.
-      Để tránh ảnh hưởng đến lịch sử tín dụng và quyền lợi, kính mong Quý khách sắp xếp thanh toán sớm nhất có thể.
-    </p>
-
-    <p class="note"><em>Trong trường hợp Quý khách đã thanh toán, vui lòng bỏ qua email này.</em></p>
-
-    <div class="footer">
-      <p>Nếu cần hỗ trợ thêm thông tin hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
-      <div class="contact">
-         <p><strong>CSKH ** Hoàng Giai Vy**</p>
-        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
-        <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    case 2:
-      return `<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>[TIN VAY - THÔNG BÁO] Quá hạn thanh toán</title>
-  <style>
-    body{font-family: Arial, Helvetica, sans-serif;line-height:1.5;color:#111;background:#f6f6f6;padding:20px}
-    .card{max-width:700px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-    h1{font-size:18px;margin:0 0 8px}
-    p{margin:8px 0}
-    .info{background:#fafafa;border:1px solid #eee;padding:12px;border-radius:6px;margin:12px 0}
-    .row{margin:6px 0}
-    .label{font-weight:600}
-    .note{color:#555;font-size:13px;margin-top:12px}
-    .footer{margin-top:18px;padding-top:12px;border-top:1px dashed #e6e6e6;color:#333}
-    .contact{margin-top:8px}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>[TIN VAY - THÔNG BÁO] Quá Hạn thanh toán kỳ tháng ${month} – Mã hợp đồng: ${v(
-        "MÃ KHOẢN VAY"
-      )}</h1>
-
-    <p>Kính gửi Ông/Bà <strong>${v("HỌ VÀ TÊN")}</strong>,</p>
-    <p>Công ty xin thông báo đến Quý khách về khoản vay đến hạn thanh toán kỳ <strong>tháng ${month}</strong> như sau:</p>
-
-    <div class="info">
-      <div class="row"><span class="label">Số điện thoại:</span> ${v(
-        "ĐIỆN THOẠI"
-      )}</div>
-      <div class="row"><span class="label">Mã hợp đồng:</span> ${v(
-        "MÃ KHOẢN VAY"
-      )}</div>
-      <div class="row"><span class="label">Số tiền đã vay bên Công ty:</span> ${formatVND(
-        v("SỐ TIỀN VAY")
-      )}</div>
-      <div class="row"><span class="label">Tổng kỳ hạn trả góp:</span> ${v(
-        "KỲ HẠN"
-      )}</div>
-      <div class="row"><span class="label">CCCD:</span> ${v("cccd")}</div>
-      <div class="row"><span class="label">Địa chỉ:</span> ${v("Địa Chỉ")}</div>
-    </div>
-
-    <p class="note">
-      Hiện tại chúng tôi ghi nhận khoản thanh toán kỳ tháng ${month} của Quý khách vẫn chưa được hoàn tất. Hồ sơ tín dụng được chuyển sang hồ sơ <strong>QUÁ HẠN</strong> đang xác minh điểm CIC về khả năng thanh toán trả góp đúng cam kết của hợp đồng vay.
-      Kỳ hạn trả góp hiện tại đã bị cộng gộp <strong>2 kỳ</strong> trên các app Viettel Money, VCcard, MoMo do quý khách chậm trễ trong việc thanh toán và không có phản hồi về các thông báo trước đó của Công Ty. Yêu Cầu Ông/ Bà vào xử lý thanh toán đúng hạn <strong>Gấp</strong> trước khi Công Ty chuyển hồ sơ Sang <strong>NỢ CHÚ Ý, NỢ XẤU</strong>.
-    </p>
-
-    <p class="note"><em>Trong trường hợp Quý khách đã thanh toán, vui lòng bỏ qua email này.</em></p>
-
-    <div class="footer">
-      <p>Nếu cần hỗ trợ thêm thông tin tách 1 kì thanh toán hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
-      <div class="contact">
-         <p><strong>CSKH ** Hoàng Giai Vy**</p>
-        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
-        <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
-      </div>
-      <p class="note"><strong>Trân trọng,</strong><br/><strong>Trung tâm Dịch vụ Khách hàng – Vay Nhanh | Tin Vay</strong></p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    case 3:
-      return `<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>[TIN VAY - THÔNG BÁO] Vi phạm quá hạn</title>
-  <style>
-    body{font-family: Arial, Helvetica, sans-serif;line-height:1.5;color:#111;background:#f6f6f6;padding:20px}
-    .card{max-width:700px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-    h1{font-size:18px;margin:0 0 8px}
-    p{margin:8px 0}
-    .info{background:#fafafa;border:1px solid #eee;padding:12px;border-radius:6px;margin:12px 0}
-    .row{margin:6px 0}
-    .label{font-weight:600}
-    .note{color:#555;font-size:13px;margin-top:12px}
-    .footer{margin-top:18px;padding-top:12px;border-top:1px dashed #e6e6e6;color:#333}
-    .contact{margin-top:8px}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>[TIN VAY - THÔNG BÁO] Vi Phạm Quá Hạn Hợp Đồng Vay Tín Dụng thanh toán kỳ tháng ${month} – Mã hợp đồng: ${v(
-        "MÃ KHOẢN VAY"
-      )}</h1>
-
-    <p>Kính gửi Ông/Bà <strong>${v("HỌ VÀ TÊN")}</strong>,</p>
-    <p>Công ty xin thông báo đến Quý khách về khoản vay đến hạn thanh toán kỳ <strong>tháng ${month}</strong> như sau:</p>
-
-    <div class="info">
-      <div class="row"><span class="label">Số điện thoại:</span> ${v(
-        "ĐIỆN THOẠI"
-      )}</div>
-      <div class="row"><span class="label">Mã hợp đồng:</span> ${v(
-        "MÃ KHOẢN VAY"
-      )}</div>
-      <div class="row"><span class="label">Số tiền đã vay bên Công ty:</span> ${formatVND(
-        v("SỐ TIỀN VAY")
-      )}</div>
-      <div class="row"><span class="label">Tổng kỳ hạn trả góp:</span> ${v(
-        "KỲ HẠN"
-      )}</div>
-      <div class="row"><span class="label">CCCD:</span> ${v("cccd")}</div>
-      <div class="row"><span class="label">Địa chỉ:</span> ${v("Địa Chỉ")}</div>
-    </div>
-
-    <p class="note">
-      Đến nay, Công ty vẫn chưa nhận được khoản thanh toán kỳ tháng ${month} của Quý khách. Việc chậm thanh toán đã gây ảnh hưởng nghiêm trọng đến hợp đồng vay và lịch sử tín dụng của Quý khách.
-      Chúng tôi đã nhiều lần liên hệ nhưng chưa nhận được phản hồi từ Quý khách. Nếu Quý khách tiếp tục không thực hiện thanh toán hoặc không liên hệ với chúng tôi trong vòng <strong>03 ngày</strong> kể từ ngày nhận được email này,
-      Công ty sẽ buộc phải áp dụng các biện pháp xử lý theo hợp đồng và quy định pháp luật, bao gồm việc chuyển hồ sơ sang phòng thu hồi nợ chuyên trách hoặc khởi kiện theo quy định.
-      Chúng tôi mong Quý khách liên hệ và thực hiện nghĩa vụ thanh toán sớm để tránh những hậu quả không mong muốn.
-    </p>
-
-    <p class="note"><em>Trong trường hợp Quý khách đã thanh toán, vui lòng bỏ qua email này.</em></p>
-
-    <div class="footer">
-      <p>Nếu cần hỗ trợ thêm thông tin tách 1 kì thanh toán hoặc hướng dẫn thanh toán, vui lòng liên hệ:</p>
-      <div class="contact">
-        <p><strong>CSKH ** Hoàng Giai Vy**</p>
-        <p>Zalo/SĐT: <strong>**0528778591**</strong></p>
-        <p>Hoặc phản hồi lại email này để được hỗ trợ.</p>
-      </div>
-      <p class="note"><strong>Trân trọng,</strong><br/><strong>Phòng xử lý Thu Hồi Nợ Chú Ý – Vay Nhanh | Tin Vay</strong></p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    default:
-      throw new Error("type phải là 1 | 2 | 3");
-  }
-}
 
 /** chunk array into smaller arrays */
 function chunkArray<T>(arr: T[], size: number) {
@@ -245,7 +26,7 @@ async function sendSingleEmail(
   subjects: string,
   recipient: any,
   type: 1 | 2 | 3,
-  month = "8"
+  month = new Date().getMonth() + 1
 ) {
   const payload = {
     sender: {
@@ -288,7 +69,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const typeRaw = formData.get("type");
-    const monthRaw = formData.get("month");
+    const monthRaw = formData.get("month") || new Date().getMonth() + 1;
     const subjectsRaw = formData.get("subjects");
 
     if (!file) {
@@ -298,19 +79,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2) Validate type (bắt buộc: 1 | 2 | 3)
+    // 2) Validate type (bắt buộc: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13)
     if (typeRaw == null || typeRaw === "") {
       return NextResponse.json(
-        { success: false, error: "Thiếu 'type' (bắt buộc 1 | 2 | 3)" },
+        {
+          success: false,
+          error:
+            "Thiếu 'type' (bắt buộc 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13)",
+        },
         { status: 400 }
       );
     }
     const typeNum = Number(typeRaw);
-    if (![1, 2, 3].includes(typeNum)) {
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(typeNum)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Giá trị 'type' không hợp lệ. Chỉ nhận 1 | 2 | 3",
+          error:
+            "Giá trị 'type' không hợp lệ. Chỉ nhận 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13",
         },
         { status: 400 }
       );
@@ -360,14 +146,17 @@ export async function POST(req: NextRequest) {
       .filter((row: any) => !!row.Email)
       .map((row: any) => ({
         Email: row.Email,
-        "MÃ KHOẢN VAY": row["MÃ KHOẢN VAY"],
         "HỌ VÀ TÊN": row["HỌ VÀ TÊN"] || "",
+        "MÃ KHOẢN VAY": row["MÃ KHOẢN VAY"],
+        CCCD: row["CCCD"] || "",
         "ĐIỆN THOẠI": row["ĐIỆN THOẠI"] || "",
+        "Địa Chỉ": row["Địa Chỉ"] || "",
+        "HỌ TÊN THAM CHIẾU 1": row["HỌ TÊN THAM CHIẾU 1"] || "",
+        "HỌ TÊN THAM CHIẾU 2": row["HỌ TÊN THAM CHIẾU 2"] || "",
         "SỐ TIỀN VAY": row["SỐ TIỀN VAY"] || "",
         "KỲ HẠN": row["KỲ HẠN"] || "",
-        "Số Tiền trả góp hàng tháng": row["Số Tiền trả góp hàng tháng"] || "",
-        cccd: row["cccd"] || "",
-        "Địa Chỉ": row["Địa Chỉ"] || "",
+        "SỐ TIỀN DƯ NỢ GỐC": row["SỐ TIỀN DƯ NỢ GỐC"] || "",
+        "SỐ TIỀN CẦN THANH TOÁN NGAY": row["SỐ TIỀN CẦN THANH TOÁN NGAY"] || "",
       }));
 
     if (recipients.length === 0) {
@@ -384,7 +173,7 @@ export async function POST(req: NextRequest) {
         subjects,
         recipient,
         typeNum as 1 | 2 | 3,
-        month
+        month as any
       );
       recipient["Trạng thái gửi mail"] = result.ok ? "Thành công" : "Thất bại";
       updatedRecipients.push(recipient);
