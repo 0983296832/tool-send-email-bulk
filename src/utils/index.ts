@@ -51,6 +51,7 @@ const style = `<style>
 </style>`;
 
 const formatVND = (value: number) => {
+  return value + "đ";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
