@@ -25,7 +25,7 @@ function chunkArray<T>(arr: T[], size: number) {
 async function sendSingleEmail(
   subjects: string,
   recipient: any,
-  type: 1 | 2 | 3,
+  type: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13,
   month = new Date().getMonth() + 1
 ) {
   const payload = {
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
         "MÃ KHOẢN VAY": row["MÃ KHOẢN VAY"],
         CCCD: row["CCCD"] || "",
         "ĐIỆN THOẠI": row["ĐIỆN THOẠI"] || "",
-        "Địa Chỉ": row["Địa Chỉ"] || "",
+        "ĐỊA CHỈ": row["ĐỊA CHỈ"] || "",
         "HỌ TÊN THAM CHIẾU 1": row["HỌ TÊN THAM CHIẾU 1"] || "",
         "HỌ TÊN THAM CHIẾU 2": row["HỌ TÊN THAM CHIẾU 2"] || "",
         "SỐ TIỀN VAY": row["SỐ TIỀN VAY"] || "",
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
       const result = await sendSingleEmail(
         subjects,
         recipient,
-        typeNum as 1 | 2 | 3,
+        typeNum as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13,
         month as any
       );
       recipient["Trạng thái gửi mail"] = result.ok ? "Thành công" : "Thất bại";
