@@ -24,6 +24,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Calendar, UploadCloud, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import RichTextEditor, { RichTextEditorRef } from "./ui/editor";
+import { buildEmailHtml } from "@/utils";
 
 export default function ExcelUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -37,6 +39,27 @@ export default function ExcelUploadForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [previewName, setPreviewName] = useState<string>("");
+  const [senderName, setSenderName] = useState<string>("");
+  const [senderEmail, setSenderEmail] = useState<string>("");
+  const exampleData = {
+    Email: "${Email}",
+    "HỌ VÀ TÊN": "${HỌ VÀ TÊN}",
+    "MÃ KHOẢN VAY": "${MÃ KHOẢN VAY}",
+    CCCD: "${CCCD}",
+    "ĐIỆN THOẠI": "${ĐIỆN THOẠI}",
+    "ĐỊA CHỈ": "${ĐỊA CHỈ}",
+    "HỌ TÊN THAM CHIẾU 1": "${HỌ TÊN THAM CHIẾU 1}",
+    "HỌ TÊN THAM CHIẾU 2": "${HỌ TÊN THAM CHIẾU 2}",
+    "SỐ TIỀN VAY": "${SỐ TIỀN VAY}",
+    "KỲ HẠN": "${KỲ HẠN}",
+    "SỐ TIỀN DƯ NỢ GỐC": "${SỐ TIỀN DƯ NỢ GỐC}",
+    "SỐ TIỀN CẦN THANH TOÁN NGAY": "${SỐ TIỀN CẦN THANH TOÁN NGAY}",
+  };
+
+  const [content, setContent] = useState(
+    buildEmailHtml(exampleData, 1, +month)
+  );
+  const editorRef = useRef<RichTextEditorRef>(null);
 
   // Progress state
   const [progress, setProgress] = useState<number>(0);
@@ -69,6 +92,12 @@ export default function ExcelUploadForm() {
       e.subjects = "Tiêu đề không được để trống.";
     if (subjects && subjects.length > 200)
       e.subjects = "Tiêu đề quá dài (tối đa 200 ký tự).";
+    if (!senderEmail || senderEmail.trim().length === 0)
+      e.senderEmail = "Email người gửi không được để trống.";
+    if (!senderName || senderName.trim().length === 0)
+      e.senderName = "Tên người gửi không được để trống.";
+    if (!content || content.trim().length === 0)
+      e.content = "Nội dung không được để trống.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -107,6 +136,9 @@ export default function ExcelUploadForm() {
     fd.append("type", String(type));
     fd.append("month", String(Number(month)));
     fd.append("subjects", subjects);
+    fd.append("content", content);
+    fd.append("sender_email", senderEmail);
+    fd.append("sender_name", senderName);
 
     // Use XMLHttpRequest to get reliable upload progress events
     const xhr = new XMLHttpRequest();
@@ -196,7 +228,7 @@ export default function ExcelUploadForm() {
                 accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 onChange={onFileChange}
                 className={cn(
-                  "block w-full text-sm file:border-0 file:bg-transparent file:cursor-pointer file:underline file:underline-offset-2",
+                  "block w-full text-sm file:border-0 file:bg-transparent file:cursor-pointer file:underline file:underline-offset-2 w-max",
                   errors.file ? "border-red-500" : "border-slate-200"
                 )}
                 disabled={loading}
@@ -211,12 +243,72 @@ export default function ExcelUploadForm() {
               )}
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-1">Email người gửi</Label>
+                <Input
+                  value={senderEmail}
+                  onChange={(e) => {
+                    setSenderEmail(e.target.value);
+                    setErrors({ ...errors, senderEmail: "" });
+                  }}
+                  disabled={loading}
+                />
+
+                {errors.senderEmail && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.senderEmail}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="mb-1">Tên người gửi</Label>
+                <Input
+                  value={senderName}
+                  onChange={(e) => {
+                    setSenderName(e.target.value);
+                    setErrors({ ...errors, senderName: "" });
+                  }}
+                  disabled={loading}
+                />
+
+                {errors.senderName && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.senderName}
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Type + Month */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="mb-1">Type</Label>
                 <Select
-                  onValueChange={(v) => setType(Number(v))}
+                  onValueChange={(v) => {
+                    const template = buildEmailHtml(
+                      exampleData,
+                      Number(v) as
+                        | 1
+                        | 2
+                        | 3
+                        | 4
+                        | 5
+                        | 6
+                        | 7
+                        | 8
+                        | 9
+                        | 10
+                        | 11
+                        | 12
+                        | 13,
+                      +month
+                    );
+                    setType(Number(v));
+                    setContent(template);
+                    editorRef.current?.setContent(template);
+                    editorRef.current?.focus();
+                  }}
                   defaultValue={String(type ?? 1)}
                   disabled={loading}
                 >
@@ -298,6 +390,13 @@ export default function ExcelUploadForm() {
                 <p className="text-sm text-red-600 mt-1">{errors.subjects}</p>
               )}
             </div>
+
+            {/* Editor */}
+            <RichTextEditor
+              ref={editorRef}
+              value={content}
+              onChange={setContent}
+            />
 
             {/* Progress */}
             <div className="space-y-2">

@@ -23,19 +23,20 @@ function chunkArray<T>(arr: T[], size: number) {
 
 /** send single email via Brevo */
 async function sendSingleEmail(
+  content: string,
+  sender_email: string,
+  sender_name: string,
   subjects: string,
-  recipient: any,
-  type: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13,
-  month = new Date().getMonth() + 1
+  recipient: any
 ) {
   const payload = {
     sender: {
-      email: process.env.NEXTJS_EMAIL_FROM ?? "",
-      name: process.env.NEXTJS_EMAIL_NAME ?? "",
+      email: sender_email ?? process.env.NEXTJS_EMAIL_FROM ?? "",
+      name: sender_name ?? process.env.NEXTJS_EMAIL_NAME ?? "",
     },
     to: [{ email: recipient.Email, name: recipient["HỌ VÀ TÊN"] || "" }],
     subject: subjects,
-    htmlContent: buildEmailHtml(recipient, type, month),
+    htmlContent: content,
   };
 
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -71,6 +72,9 @@ export async function POST(req: NextRequest) {
     const typeRaw = formData.get("type");
     const monthRaw = formData.get("month") || new Date().getMonth() + 1;
     const subjectsRaw = formData.get("subjects");
+    const content = formData.get("content");
+    const senderEmail = formData.get("sender_email");
+    const senderName = formData.get("sender_name");
 
     if (!file) {
       return NextResponse.json(
@@ -169,11 +173,91 @@ export async function POST(req: NextRequest) {
     // Gửi email cho mỗi người nhận và thêm cột trạng thái
     const updatedRecipients = [];
     for (const recipient of recipients) {
+      const formatVND = (value: number) => {
+        return new Intl.NumberFormat("vi-VN").format(value);
+      };
+      function renderTemplate(
+        template: string,
+        data: Record<string, string | number>
+      ): string {
+        return (
+          `<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>[TIN VAY - THÔNG BÁO] Đến hạn thanh toán</title>
+  <style>
+  body {
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    line-height: 1.7;
+    color: #222;
+    background: #f3f4f6;
+    margin: 0;
+    padding: 24px;
+  }
+  .card {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 28px 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 16px;
+    color: #d93025; /* đỏ nhấn */
+    line-height: 1.4;
+  }
+  p {
+    margin: 10px 0;
+    font-size: 15px;
+    color: #333;
+  }
+  ul {
+    margin: 14px 0 0 22px;
+    padding: 0;
+  }
+  li {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  .footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #d1d5db;
+    font-size: 14px;
+    color: #555;
+  }
+  .footer strong {
+    color: #111;
+  }
+</style>
+</head>
+<body>
+  <div class="card">` +
+          template.replace(/\$\{([^}]+)\}/g, (_, key: string) => {
+            const value =
+              key.trim() == "SỐ TIỀN CẦN THANH TOÁN NGAY" ||
+              key.trim() == "SỐ TIỀN VAY" ||
+              key.trim() == "SỐ TIỀN DƯ NỢ GỐC"
+                ? formatVND(+data[key.trim()])
+                : data[key.trim()];
+            return value !== undefined ? String(value) : "";
+          }) +
+          `</div>
+</body>
+</html>`
+        );
+      }
       const result = await sendSingleEmail(
+        renderTemplate(content as string, recipient),
+        senderEmail as string,
+        senderName as string,
         subjects,
-        recipient,
-        typeNum as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13,
-        month as any
+        recipient
       );
       recipient["Trạng thái gửi mail"] = result.ok ? "Thành công" : "Thất bại";
       updatedRecipients.push(recipient);
