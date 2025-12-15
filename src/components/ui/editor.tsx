@@ -84,7 +84,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
 
     useImperativeHandle(ref, () => ({
       setContent(html: string) {
-        editor?.commands.setContent(html, false);
+        editor?.commands.setContent(html);
       },
       getContent() {
         return editor?.getHTML() ?? "";
@@ -97,7 +97,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     useEffect(() => {
       if (!editor || isInitialized.current) return;
 
-      editor.commands.setContent(value, false);
+      editor.commands.setContent(value);
       isInitialized.current = true;
     }, [editor, value]);
 
