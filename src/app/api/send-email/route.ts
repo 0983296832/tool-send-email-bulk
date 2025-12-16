@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
               key.trim() == "SỐ TIỀN CẦN THANH TOÁN NGAY" ||
               key.trim() == "SỐ TIỀN VAY" ||
               key.trim() == "SỐ TIỀN DƯ NỢ GỐC"
-                ? formatVND(+data[key.trim()])
+                ? data[key.trim()] + "₫"
                 : data[key.trim()];
             return value !== undefined ? String(value) : "";
           }) +
